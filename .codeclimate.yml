@@ -1,0 +1,20 @@
+version: "2"
+plugins:
+  markdownlint:
+    enabled: true
+  pep8:
+    enabled: true
+  sonar-python:
+    enabled: true
+    config:
+      minimum_severity: minor
+  duplication:
+    enabled: true
+    config:
+      languages:
+        python:
+          python_version: 3
+          mass_threshold: 128
+
+exclude_patterns:
+- "tests/"
