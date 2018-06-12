@@ -35,3 +35,6 @@ class JWTAuthentication(object):
             raise PermissionDenied(str(e))
 
         return user, token
+
+    def authenticate_header(self, request):
+        return "Bearer"
