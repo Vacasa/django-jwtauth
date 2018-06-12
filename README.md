@@ -1,7 +1,7 @@
 # JSON Web Token (JWT) Authentication with Django
 
-[![Maintainability](https://api.codeclimate.com/v1/badges/9d07587555085a7c9004/maintainability)](https://codeclimate.com/repos/5b1aaa30842e940289001290/maintainability)
-[![Test Coverage](https://api.codeclimate.com/v1/badges/9d07587555085a7c9004/test_coverage)](https://codeclimate.com/repos/5b1aaa30842e940289001290/test_coverage)
+[![Maintainability](https://api.codeclimate.com/v1/badges/93c2ec4567dd362cd9eb/maintainability)](https://codeclimate.com/github/Vacasa/django-jwtauth/maintainability)
+[![Test Coverage](https://api.codeclimate.com/v1/badges/93c2ec4567dd362cd9eb/test_coverage)](https://codeclimate.com/github/Vacasa/django-jwtauth/test_coverage)
 
 ## Overview
 
