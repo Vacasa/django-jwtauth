@@ -56,6 +56,7 @@ setup(
     license='MIT',
     description='JWT Authentication for Django',
     long_description=read_md('README.md'),
+    url='https://github.com/vacasa/django-jwtauth',
     packages=find_packages(exclude=['tests*']),
     include_package_data=True,
     install_requires=['Django',
