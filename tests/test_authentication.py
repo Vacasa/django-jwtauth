@@ -149,3 +149,6 @@ class JWTAuthenticationTestCase(TestCase):
         jwtauth = JWTAuthentication()
         auth_tuple = jwtauth.authenticate(request)
         self.assertTrue(auth_tuple[0].is_authenticated)
+
+    def test_authenticate_header(self):
+        self.assertEqual(JWTAuthentication().authenticate_header(None), 'Bearer')
