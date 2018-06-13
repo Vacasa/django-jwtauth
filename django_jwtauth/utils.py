@@ -25,8 +25,8 @@ _PUBLIC_KEY_FILENAME = path.join(_KEYS_DIR, 'RS256.key.pub')
 
 def setup_keys():
     # If we don't have a key pair, we generate one. This should only happen once
-    if not path.isdir(path.join(_KEYS_DIR)):
-        mkdir(path.join(_KEYS_DIR))
+    if not path.isdir(_KEYS_DIR):
+        mkdir(_KEYS_DIR)
     if not path.isfile(_PRIVATE_KEY_FILENAME):
         key = rsa.generate_private_key(
             backend=default_backend(),
@@ -48,10 +48,6 @@ def setup_keys():
                     serialization.PublicFormat.OpenSSH
                 ).decode()
             )
-    if 'JWT_PUBLIC_KEY' not in settings.DJANGO_JWTAUTH:
-        with open(_PUBLIC_KEY_FILENAME, 'r') as f:
-            settings.DJANGO_JWTAUTH['JWT_PUBLIC_KEY'] = str(f.read())
-
     with open(_PRIVATE_KEY_FILENAME, 'r') as f:
         private_key = str(f.read())
     return private_key
@@ -59,6 +55,15 @@ def setup_keys():
 
 def get_private_key():
     return setup_keys()
+
+
+def get_public_key():
+    if 'JWT_PUBLIC_KEY' in settings.DJANGO_JWTAUTH and settings.DJANGO_JWTAUTH['JWT_PUBLIC_KEY']:
+        return settings.DJANGO_JWTAUTH['JWT_PUBLIC_KEY']
+    if not path.isfile(_PUBLIC_KEY_FILENAME):
+        setup_keys()
+    with open(_PUBLIC_KEY_FILENAME, 'r') as f:
+        return str(f.read())
 
 
 def generate_jwt_for_user(local_user):
@@ -111,11 +116,11 @@ def verify_token(token):
     # In the case that the token isn't cached, we need to decode and verify the signature
     # In the case that it is in the cache, we need to decode to get the 'sub' and 'iss' claims to look up the user
     claims = jwt.decode(
-        jwt=token,
+        token=token,
         verify=verify,
         audience=settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],
         issuer=settings.DJANGO_JWTAUTH['JWT_ISSUER'],
-        key=settings.DJANGO_JWTAUTH['JWT_PUBLIC_KEY'],
+        key=get_public_key(),
         algorithms=[settings.DJANGO_JWTAUTH['JWT_ALGORITHM']]
     )
 
