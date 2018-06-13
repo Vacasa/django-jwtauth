@@ -18,24 +18,22 @@ from django_jwtauth.models import RemoteUser
 
 cache = caches[settings.DJANGO_JWTAUTH['JWT_CACHE_ALIAS']]
 
+_KEYS_DIR = path.join(path.dirname(path.realpath(__file__)), 'keys')
+_PRIVATE_KEY_FILENAME = path.join(_KEYS_DIR, 'RS256.key')
+_PUBLIC_KEY_FILENAME = path.join(_KEYS_DIR, 'RS256.key.pub')
+
 
 def setup_keys():
-    dir_path = path.dirname(path.realpath(__file__))
-    PRIVATE_KEY_FILENAME = path.join(dir_path, 'keys', 'RS256.key')
-    PUBLIC_KEY_FILENAME = path.join(dir_path, 'keys', 'RS256.key.pub')
-    if not path.isdir(path.join(dir_path, 'keys')):
-        mkdir(path.join(dir_path, 'keys'))
-
-    if ('JWT_PUBLIC_KEY' not in settings.DJANGO_JWTAUTH or
-        not path.isfile(PUBLIC_KEY_FILENAME) or
-            not path.isfile(PRIVATE_KEY_FILENAME)):
+    # If we don't have a key pair, we generate one. This should only happen once
+    if not path.isdir(path.join(_KEYS_DIR)):
+        mkdir(path.join(_KEYS_DIR))
+    if not path.isfile(_PRIVATE_KEY_FILENAME):
         key = rsa.generate_private_key(
             backend=default_backend(),
             public_exponent=65537,
             key_size=2048
         )
-
-        with open(PRIVATE_KEY_FILENAME, 'w+') as private_key:
+        with open(_PRIVATE_KEY_FILENAME, 'w+') as private_key:
             private_key.write(
                 key.private_bytes(
                     serialization.Encoding.PEM,
@@ -43,27 +41,23 @@ def setup_keys():
                     serialization.NoEncryption()
                 ).decode()
             )
+        with open(_PUBLIC_KEY_FILENAME, 'w+') as public_key:
+            public_key.write(
+                key.public_key().public_bytes(
+                    serialization.Encoding.OpenSSH,
+                    serialization.PublicFormat.OpenSSH
+                ).decode()
+            )
+    if 'JWT_PUBLIC_KEY' not in settings.DJANGO_JWTAUTH:
+        with open(_PUBLIC_KEY_FILENAME, 'r') as f:
+            settings.DJANGO_JWTAUTH['JWT_PUBLIC_KEY'] = str(f.read())
 
-        # If we haven't set a public key, we assume that we're in a dev environment and need to generate a key pair
-        if 'JWT_PUBLIC_KEY' not in settings.DJANGO_JWTAUTH:
-            with open(PUBLIC_KEY_FILENAME, 'w+') as public_key:
-                public_key.write(
-                    key.public_key().public_bytes(
-                        serialization.Encoding.OpenSSH,
-                        serialization.PublicFormat.OpenSSH
-                    ).decode()
-                )
-            with open(PUBLIC_KEY_FILENAME, 'r') as f:
-                settings.DJANGO_JWTAUTH['JWT_PUBLIC_KEY'] = str(f.read())
-
-    with open(PRIVATE_KEY_FILENAME, 'r') as f:
+    with open(_PRIVATE_KEY_FILENAME, 'r') as f:
         private_key = str(f.read())
-
     return private_key
 
-
-PRIVATE_KEY = setup_keys()
-
+def get_private_key():
+    return setup_keys()
 
 def generate_jwt_for_user(local_user):
     '''
@@ -87,10 +81,9 @@ def generate_jwt_for_user(local_user):
     )
 
     claims['sub'] = remote_user.sub
-
     token = jwt.encode(
         payload=claims,
-        key=PRIVATE_KEY,
+        key=get_private_key(),
         algorithm=settings.DJANGO_JWTAUTH['JWT_ALGORITHM']
     )
 
@@ -160,5 +153,4 @@ def swap_auth_code_for_token(code):
     )
 
     r.raise_for_status()
-
     return r.json()
