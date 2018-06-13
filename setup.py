@@ -61,7 +61,7 @@ setup(
     include_package_data=True,
     install_requires=['Django',
                       'cryptography',
-                      'PyJWT',
+                      'PyJWT>=1.6.3',
                       'requests'],
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
     zip_safe=False,
