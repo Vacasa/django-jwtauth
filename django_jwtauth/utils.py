@@ -56,8 +56,10 @@ def setup_keys():
         private_key = str(f.read())
     return private_key
 
+
 def get_private_key():
     return setup_keys()
+
 
 def generate_jwt_for_user(local_user):
     '''
