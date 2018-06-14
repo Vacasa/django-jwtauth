@@ -9,7 +9,7 @@ from django.test import TestCase
 
 from django.contrib.auth import get_user_model
 
-from django_jwtauth.utils import setup_keys, verify_token, PRIVATE_KEY
+from django_jwtauth.utils import setup_keys, verify_token, get_private_key
 
 OUT = StringIO()
 
@@ -38,21 +38,11 @@ class GenerateTokenTestCase(TestCase):
         with self.settings(DEBUG=True):
             call_command('generate_token', user=str(self.test_user.id), stdout=OUT)
 
-    def test_command_without_key_path(self):
-        with self.settings(DEBUG=True):
-            token = call_command('generate_token', email=self.test_user.email, stdout=OUT)
-        dir_path = path.join(path.dirname(path.dirname(path.realpath(__file__))), 'django_jwtauth')
-        if path.isdir(path.join(dir_path, 'keys')):
-            rmtree(path.join(dir_path, 'keys'))
-        setup_keys()
-        user = verify_token(token)
-        self.assertEqual(user.id, self.test_user.id)
-
     def test_command_keys_only_generate_once(self):
         with self.settings(DEBUG=True):
             token = call_command('generate_token', user=str(self.test_user.id), stdout=OUT)
         private_key = setup_keys()
-        self.assertEqual(private_key, PRIVATE_KEY)
+        self.assertEqual(private_key, get_private_key())
 
     def test_command_uses_test_user(self):
         with self.settings(DEBUG=True):

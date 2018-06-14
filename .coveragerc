@@ -1,0 +1,11 @@
+[run]
+source = ./django_jwtauth
+branch = true
+omit =
+  */test*/*
+  runtests.py
+  setup.py
+
+[report]
+show_missing = true
+skip_covered = true

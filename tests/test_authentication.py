@@ -14,7 +14,7 @@ from django.test.client import RequestFactory
 
 from django_jwtauth.authentication import JWTAuthentication
 from django_jwtauth.models import RemoteUser
-from django_jwtauth.utils import PRIVATE_KEY
+from django_jwtauth.utils import get_private_key
 
 
 class JWTAuthenticationTestCase(TestCase):
@@ -35,7 +35,7 @@ class JWTAuthenticationTestCase(TestCase):
     def jwt_encode_as_bearer(self, payload):
         return "Bearer {}".format(jwt.encode(
             payload=payload,
-            key=PRIVATE_KEY,
+            key=get_private_key(),
             algorithm=settings.DJANGO_JWTAUTH['JWT_ALGORITHM']
         ).decode('utf-8'))
 
