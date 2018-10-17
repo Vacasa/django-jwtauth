@@ -1,7 +1,7 @@
 from shutil import rmtree
 from os import path
 from time import time
-
+from copy import deepcopy
 from django.conf import settings
 from django.test import TestCase, override_settings, tag
 
@@ -9,6 +9,15 @@ from django_jwtauth import utils
 
 
 class UtilsTestCase(TestCase):
+
+    def setUp(self):
+        self.claims = {
+            'iss': settings.DJANGO_JWTAUTH['JWT_ISSUER'],  # issuer
+            'sub': 'test_user',  # subject (user)
+            'aud': settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],  # audience
+            'exp': int(time()) + 10,  # expiration time
+            'iat': int(time())  # issued at
+        }
 
     def test_setup_keys_creates_keys(self):
         rmtree(utils._KEYS_DIR)
@@ -38,23 +47,11 @@ class UtilsTestCase(TestCase):
         self.assertEqual(utils.get_private_key(), private_key)
 
     def test_verify_user_client_sub(self):
-        claims = {
-            'iss': settings.DJANGO_JWTAUTH['JWT_ISSUER'],  # issuer
-            'sub': 'test_user',  # subject (user)
-            'aud': settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],  # audience
-            'exp': int(time()) + 10,  # expiration time
-            'iat': int(time())  # issued at
-        }
-
-        self.assertEquals(claims['sub'], utils.verify_user_client(claims))
+        self.assertEquals(self.claims['sub'], utils.verify_user_client(self.claims))
 
     def test_verify_user_client_azp(self):
-        claims = {
-            'iss': settings.DJANGO_JWTAUTH['JWT_ISSUER'],  # issuer
-            'azp': 'c1l2i3e4n5t6i7d8',  # subject (user)
-            'aud': settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],  # audience
-            'exp': int(time()) + 10,  # expiration time
-            'iat': int(time())  # issued at
-        }
+        claims = deepcopy(self.claims)
+        del(claims['sub'])
+        claims['azp'] = 'c1l2i3e4n5t6i7d8' 
 
         self.assertEquals(claims['azp'], utils.verify_user_client(claims))
