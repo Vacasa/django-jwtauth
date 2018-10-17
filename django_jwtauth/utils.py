@@ -96,6 +96,20 @@ def generate_jwt_for_user(local_user):
 
     return token.decode('utf-8')
 
+def verify_user_client(claims):
+    '''
+    Verify that:
+        claims list contains the claim type
+        return False if claim type is non existent
+    '''
+    if 'sub' in claims:
+        return claims['sub']
+    
+    elif 'azp' in claims:
+        return claims['azp']
+
+    else:
+        return False
 
 def verify_token(token):
     '''
@@ -127,15 +141,16 @@ def verify_token(token):
     # If it's a valid token from an issuer we trust, we need to see if there's a user record associated
     try:
         # Now we check to see whether we have a user in our local db
-        # that corresponds to the subject and issuer ('sub', 'iss') claims in our token
-        remote_user = RemoteUser.objects.get(sub=claims['sub'], iss=claims['iss'])
+        # that corresponds to the subject and issuer ('sub', 'azp', 'iss') claims in our token
+        remote_user = RemoteUser.objects.get(sub=verify_user_client(claims), iss=claims['iss'])
+
     except RemoteUser.DoesNotExist:
         # if the user isn't found, we'll hit here
         # Not having a remote user user means that we don't have a local user,
         # so we'll create done of each
         local_user = get_user_model().objects.create()
         remote_user = RemoteUser.objects.create(
-            sub=claims['sub'],
+            sub=verify_user_client(claims),
             iss=claims['iss'],
             local_user=local_user
         )
