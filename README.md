@@ -78,3 +78,12 @@ wherever you have `django-jwtauth` installed. `django-jwtauth` will use these un
 done so that in development, we can operate as a JWT provider ourselves, using the `utils.generate_jwt_for_user()` function to generate a token (using our
 local private key) which will then be valid (validated using our local public key). This is included only as a stop-gap to enable local development without
 requiring a third-party JWT issuer.
+
+## Testing
+Python three must be installed on your device.
+
+In `django-jwtauth` directory:
+    run `python3 -m venv venv`
+    ` . venv/bin/activate`
+    ` ./runtests.py`
+    
