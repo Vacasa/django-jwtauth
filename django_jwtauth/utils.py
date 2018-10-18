@@ -96,6 +96,7 @@ def generate_jwt_for_user(local_user):
 
     return token.decode('utf-8')
 
+
 def verify_user_client(claims):
     '''
     Verify that:
@@ -104,12 +105,13 @@ def verify_user_client(claims):
     '''
     if 'sub' in claims:
         return claims['sub']
-    
+
     elif 'azp' in claims:
         return claims['azp']
 
     else:
         return False
+
 
 def verify_token(token):
     '''

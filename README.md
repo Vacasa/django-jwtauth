@@ -80,10 +80,10 @@ local private key) which will then be valid (validated using our local public ke
 requiring a third-party JWT issuer.
 
 ## Testing
+
 Python three must be installed on your device.
 
 In `django-jwtauth` directory:
     run `python3 -m venv venv`
     ` . venv/bin/activate`
     ` ./runtests.py`
-    
