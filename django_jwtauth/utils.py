@@ -161,3 +161,11 @@ def swap_auth_code_for_token(code):
 
     r.raise_for_status()
     return r.json()
+
+
+def decode_jwt(token):
+    return jwt.decode(
+        token,
+        key=get_public_key(),
+        algorithms=[settings.DJANGO_JWTAUTH['JWT_ALGORITHM']]
+    )
