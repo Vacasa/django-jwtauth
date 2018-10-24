@@ -6,6 +6,8 @@ from os import path, mkdir
 from time import time
 from hashlib import sha256
 
+from jwt.exceptions import MissingRequiredClaimError
+
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.backends import default_backend
@@ -131,7 +133,7 @@ def verify_token(token):
     elif 'azp' in claims:
         user_id = claims['azp']
     else:
-        return False
+        raise MissingRequiredClaimError('Token must include either \'sub\' or \'azp\' claim.')
 
     # If it's a valid token from an issuer we trust, we need to see if there's a user record associated
     try:
