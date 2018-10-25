@@ -68,7 +68,7 @@ def get_public_key():
         return str(f.read())
 
 
-def generate_jwt_for_user(local_user):
+def generate_jwt_for_user(local_user, use_azp= False):
     '''
     Django-JWTAuth correlates users from two domains: the local domain (in the app where we're using Django-JWTAuth)
     and the Token generator's domain (which is NOT Django-JWTAuth except when testing)
@@ -82,14 +82,14 @@ def generate_jwt_for_user(local_user):
         'exp': int(time()) + 3600,  # 1 hour
         'iat': int(time())  # issued at
     }
-
     remote_user, created = RemoteUser.objects.get_or_create(
         iss=claims['iss'],
         local_user=local_user,
         defaults={'sub': str(local_user.id)}
     )
 
-    claims['sub'] = remote_user.sub
+    subject_claim = 'azp' if use_azp else 'sub'
+    claims[subject_claim] = remote_user.sub
     token = jwt.encode(
         payload=claims,
         key=get_private_key(),
@@ -144,7 +144,7 @@ def verify_token(token):
     except RemoteUser.DoesNotExist:
         # if the user isn't found, we'll hit here
         # Not having a remote user user means that we don't have a local user,
-        # so we'll create done of each
+        # so we'll create one of each
         local_user = get_user_model().objects.create()
         remote_user = RemoteUser.objects.create(
             sub=user_id,

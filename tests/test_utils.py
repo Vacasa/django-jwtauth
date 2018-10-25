@@ -1,8 +1,11 @@
-from shutil import rmtree
+import jwt
+
 from os import path
+from shutil import rmtree
 from time import time
-from copy import deepcopy
+
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.test import TestCase, override_settings, tag
 
 from django_jwtauth import utils
@@ -46,12 +49,44 @@ class UtilsTestCase(TestCase):
         utils.setup_keys()
         self.assertEqual(utils.get_private_key(), private_key)
 
-    def test_verify_user_client_sub(self):
-        self.assertEquals(self.claims['sub'], utils.verify_user_client(self.claims))
+    def test_verify_token_passes_with_sub(self):
+        user = get_user_model()()
+        user.save()
+        token = utils.generate_jwt_for_user(user)
+        local_user = utils.verify_token(token)
+        self.assertIsInstance(local_user, get_user_model())
 
-    def test_verify_user_client_azp(self):
-        claims = deepcopy(self.claims)
-        del(claims['sub'])
-        claims['azp'] = 'c1l2i3e4n5t6i7d8' 
+    def test_verify_token_passes_with_azp(self):
+        user = get_user_model()()
+        user.save()
+        token = utils.generate_jwt_for_user(user, use_azp=True)
+        local_user = utils.verify_token(token)
+        self.assertIsInstance(local_user, get_user_model())
 
-        self.assertEquals(claims['azp'], utils.verify_user_client(claims))
+    def test_generate_token_returns_sub_claim(self):
+        user = get_user_model()()
+        user.save()
+        token = utils.generate_jwt_for_user(user, use_azp=False)
+        claims = jwt.decode(
+            token=token,
+            verify=False,
+            audience=settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],
+            issuer=settings.DJANGO_JWTAUTH['JWT_ISSUER'],
+            key=utils.get_public_key(),
+            algorithms=[settings.DJANGO_JWTAUTH['JWT_ALGORITHM']]
+        )
+        self.assertIn('sub', claims)
+
+    def test_generate_token_returns_azp_claim(self):
+        user = get_user_model()()
+        user.save()
+        token = utils.generate_jwt_for_user(user, use_azp=True)
+        claims = jwt.decode(
+            token=token,
+            verify=False,
+            audience=settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],
+            issuer=settings.DJANGO_JWTAUTH['JWT_ISSUER'],
+            key=utils.get_public_key(),
+            algorithms=[settings.DJANGO_JWTAUTH['JWT_ALGORITHM']]
+        )
+        self.assertIn('azp', claims)

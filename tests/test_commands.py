@@ -1,13 +1,10 @@
 import uuid
 from io import StringIO
-from os import path
-from shutil import rmtree
 
+from django.contrib.auth import get_user_model
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase
-
-from django.contrib.auth import get_user_model
 
 from django_jwtauth.utils import setup_keys, verify_token, get_private_key
 

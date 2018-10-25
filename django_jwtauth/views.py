@@ -121,7 +121,16 @@ class CallbackView(View):
         # to exchange the authorization code for an access token
         response = swap_auth_code_for_token(request.GET['code'])
 
-        user = verify_token(response['access_token'])
+        try:
+            user = verify_token(response['access_token'])
+        except (
+            jwt.exceptions.ExpiredSignatureError,
+            jwt.exceptions.InvalidAudienceError,
+            jwt.exceptions.InvalidIssuerError,
+            jwt.exceptions.MissingRequiredClaimError,
+        ) as e:
+            # for claims issues, we re-raise the exception to allow a helpful user feedback message to be created
+            raise PermissionDenied(str(e))
 
         if 'id_token' in response:
             claims = jwt.decode(
