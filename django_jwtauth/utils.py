@@ -1,4 +1,5 @@
 import jwt
+from jwt import exceptions
 import requests
 
 from os import path, mkdir
@@ -87,7 +88,7 @@ def generate_jwt_for_user(local_user):
         defaults={'claim_identifier': str(local_user.id)}
     )
 
-    claims['claim_identifier'] = remote_user.claim_identifier
+    claims['sub'] = remote_user.claim_identifier
     token = jwt.encode(
         payload=claims,
         key=get_private_key(),
@@ -95,21 +96,6 @@ def generate_jwt_for_user(local_user):
     )
 
     return token.decode('utf-8')
-
-
-def verify_user_client(claims):
-    '''
-    Verify that:
-        claims list contains the claim type
-        return False if claim type is non existent
-    '''
-    if 'sub' in claims:
-        return claims['sub']
-
-    elif 'azp' in claims:
-        return claims['azp']
-
-    raise Exception('Either "sub" or "azp" must be set.')
 
 
 def verify_token(token):
@@ -139,11 +125,19 @@ def verify_token(token):
         algorithms=[settings.DJANGO_JWTAUTH['JWT_ALGORITHM']]
     )
 
+    user_id_claim = None
+    if 'sub' in claims:
+        user_id_claim = 'sub'
+    elif 'azp' in claims:
+        user_id_claim = 'azp'
+    else:
+        raise exceptions.MissingRequiredClaimError('Either "sub" or "azp" must be set.')
+
     # If it's a valid token from an issuer we trust, we need to see if there's a user record associated
     try:
         # Now we check to see whether we have a user in our local db
         # that corresponds to the subject and issuer ('claim_identifier', 'azp', 'iss') claims in our token
-        remote_user = RemoteUser.objects.get(claim_identifier=verify_user_client(claims), iss=claims['iss'])
+        remote_user = RemoteUser.objects.get(claim_identifier=claims[user_id_claim], iss=claims['iss'])
 
     except RemoteUser.DoesNotExist:
         # if the user isn't found, we'll hit here
@@ -151,7 +145,7 @@ def verify_token(token):
         # so we'll create done of each
         local_user = get_user_model().objects.create()
         remote_user = RemoteUser.objects.create(
-            claim_identifier=verify_user_client(claims),
+            claim_identifier=claims[user_id_claim],
             iss=claims['iss'],
             local_user=local_user
         )

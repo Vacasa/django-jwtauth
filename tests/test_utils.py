@@ -1,12 +1,15 @@
-from shutil import rmtree
+import jwt
+
 from os import path
+from shutil import rmtree
 from time import time
-from copy import deepcopy
+
 from django.conf import settings
+from django.contrib.auth import get_user_model
+
 from django.test import TestCase, override_settings, tag
 
 from django_jwtauth import utils
-
 
 class UtilsTestCase(TestCase):
 
@@ -46,12 +49,34 @@ class UtilsTestCase(TestCase):
         utils.setup_keys()
         self.assertEqual(utils.get_private_key(), private_key)
 
-    def test_verify_user_client_sub(self):
-        self.assertEquals(self.claims['sub'], utils.verify_user_client(self.claims))
+    def test_verify_token_passes_with_sub_claim(self):
+        self.assertNotIn('azp', self.claims)
+        token = jwt.encode(
+            payload=self.claims,
+            key=utils.get_private_key(),
+            algorithm=settings.DJANGO_JWTAUTH['JWT_ALGORITHM']
+        )
+        self.assertIsInstance(utils.verify_token(token.decode()), get_user_model())
 
-    def test_verify_user_client_azp(self):
-        claims = deepcopy(self.claims)
-        del(claims['sub'])
-        claims['azp'] = 'c1l2i3e4n5t6i7d8' 
+    def test_verify_token_passes_with_azp_claim(self):
+        self.claims['azp'] = self.claims['sub']
+        del self.claims['sub']
+        self.assertNotIn('sub', self.claims)
+        token = jwt.encode(
+            payload=self.claims,
+            key=utils.get_private_key(),
+            algorithm=settings.DJANGO_JWTAUTH['JWT_ALGORITHM']
+        )
+        self.assertIsInstance(utils.verify_token(token.decode()), get_user_model())
 
-        self.assertEquals(claims['azp'], utils.verify_user_client(claims))
+    def test_verify_token_raises_with_no_sub_or_azp_claim(self):
+        del self.claims['sub']
+        self.assertNotIn('sub', self.claims)
+        self.assertNotIn('azp', self.claims)
+        token = jwt.encode(
+            payload=self.claims,
+            key=utils.get_private_key(),
+            algorithm=settings.DJANGO_JWTAUTH['JWT_ALGORITHM']
+        )
+        with self.assertRaises(jwt.exceptions.MissingRequiredClaimError):
+            utils.verify_token(token.decode()), get_user_model()
