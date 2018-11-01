@@ -126,12 +126,12 @@ class JWTAuthenticationTestCase(TestCase):
     def test_authentication_creates_vjwt_user_when_user_dne(self):
         # first make sure the db is clean
         with self.assertRaises(RemoteUser.DoesNotExist):
-            RemoteUser.objects.get(claim_identifier=self.claims['sub'], iss=self.claims['iss'])
+            RemoteUser.objects.get(sub=self.claims['sub'], iss=self.claims['iss'])
         # request should populate the db
         request = self.factory.get('/test', HTTP_AUTHORIZATION=self.jwt_encode_as_bearer(payload=self.claims))
         jwtauth = JWTAuthentication()
         self.assertIsInstance(jwtauth.authenticate(request)[0], get_user_model())
-        new_vjwt_user = RemoteUser.objects.get(claim_identifier=self.claims['sub'], iss=self.claims['iss'])
+        new_vjwt_user = RemoteUser.objects.get(sub=self.claims['sub'], iss=self.claims['iss'])
         self.assertIsInstance(new_vjwt_user, RemoteUser)
 
     def test_authentication_creates_auth_user_when_user_dne(self):
