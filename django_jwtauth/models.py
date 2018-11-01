@@ -10,5 +10,5 @@ class RemoteUser(models.Model):
     """
 
     iss = models.CharField(max_length=128, null=False)
-    claim_identifier = models.CharField(max_length=128, null=False)
+    sub = models.CharField(max_length=128, null=False)
     local_user = models.ForeignKey(get_user_model(), null=True, on_delete=models.CASCADE)
