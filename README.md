@@ -86,4 +86,5 @@ Python three must be installed on your device.
 In `django-jwtauth` directory:
     run `python3 -m venv venv`
     ` . venv/bin/activate`
+    ` pip install -r requirements.txt`
     ` ./runtests.py`
