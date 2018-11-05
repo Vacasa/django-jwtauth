@@ -1,4 +1,5 @@
 import jwt
+from jwt import exceptions
 import requests
 
 from os import path, mkdir
@@ -124,18 +125,27 @@ def verify_token(token):
         algorithms=[settings.DJANGO_JWTAUTH['JWT_ALGORITHM']]
     )
 
+    user_id_claim = None
+    if 'sub' in claims:
+        user_id_claim = 'sub'
+    elif 'azp' in claims:
+        user_id_claim = 'azp'
+    else:
+        raise exceptions.MissingRequiredClaimError('Either "sub" or "azp" must be set.')
+
     # If it's a valid token from an issuer we trust, we need to see if there's a user record associated
     try:
         # Now we check to see whether we have a user in our local db
-        # that corresponds to the subject and issuer ('sub', 'iss') claims in our token
-        remote_user = RemoteUser.objects.get(sub=claims['sub'], iss=claims['iss'])
+        # that corresponds to the subject and issuer ('sub', 'azp', 'iss') claims in our token
+        remote_user = RemoteUser.objects.get(sub=claims[user_id_claim], iss=claims['iss'])
+
     except RemoteUser.DoesNotExist:
         # if the user isn't found, we'll hit here
         # Not having a remote user user means that we don't have a local user,
         # so we'll create done of each
         local_user = get_user_model().objects.create()
         remote_user = RemoteUser.objects.create(
-            sub=claims['sub'],
+            sub=claims[user_id_claim],
             iss=claims['iss'],
             local_user=local_user
         )

@@ -73,6 +73,16 @@ class JWTAuthenticationTestCase(TestCase):
         with self.assertRaises(PermissionDenied):
             jwtauth.authenticate(request)
 
+    def test_authentication_passes_with_azp_no_sub(self):
+        claims = deepcopy(self.claims)
+        del(claims['sub'])
+        
+        claims['azp'] = 'c1l2i3e4n5t6i7d8'
+        request = self.factory.get('/test', HTTP_AUTHORIZATION=self.jwt_encode_as_bearer(payload=self.claims))
+        jwtauth = JWTAuthentication()
+        user_auth = jwtauth.authenticate(request)
+        self.assertTrue(user_auth[0].is_authenticated)
+
     def test_authentication_passes_with_required_claims(self):
         request = self.factory.get('/test', HTTP_AUTHORIZATION=self.jwt_encode_as_bearer(payload=self.claims))
         jwtauth = JWTAuthentication()
