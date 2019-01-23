@@ -117,7 +117,7 @@ def verify_token(token):
     # In the case that the token isn't cached, we need to decode and verify the signature
     # In the case that it is in the cache, we need to decode to get the 'sub' and 'iss' claims to look up the user
     claims = jwt.decode(
-        token=token,
+        token,
         verify=verify,
         audience=settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],
         issuer=settings.DJANGO_JWTAUTH['JWT_ISSUER'],
