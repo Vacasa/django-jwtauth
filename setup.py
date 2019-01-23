@@ -60,9 +60,9 @@ setup(
     packages=find_packages(exclude=['tests*']),
     include_package_data=True,
     install_requires=['Django',
-                      'cryptography',
+                      'cryptography>=2.4.2',
                       'PyJWT>=1.6.3',
-                      'requests'],
+                      'requests>=2.20.0'],
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
     zip_safe=False,
     classifiers=[]
