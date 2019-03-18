@@ -14,6 +14,7 @@ from cryptography.hazmat.backends import default_backend
 from django.conf import settings
 from django.core.cache import caches
 from django.contrib.auth import get_user_model
+from django.db.utils import IntegrityError
 
 from django_jwtauth.models import RemoteUser
 
@@ -98,6 +99,33 @@ def generate_jwt_for_user(local_user):
     return token.decode('utf-8')
 
 
+def create_remote_user(sub: str, iss: str) -> RemoteUser:
+    """
+    Takes the client_id and idp accounts url, creates a new RemoteUser corresponding to a django User object.
+    It will throw an error if a User already exists
+    :param sub:
+    :param iss:
+    :return:
+    """
+    user_model = get_user_model()
+    try:
+        return RemoteUser.objects.create(
+            sub=sub,
+            iss=iss,
+            local_user=user_model.objects.create()
+        )
+    except IntegrityError:
+        '''IntegrityError is thrown when a user already exists with an empty username
+    `duplicate key value violates unique constraint "auth_user_username_key" DETAIL:  Key (username)=() already exists.`
+        '''
+        user_model.get(username='').delete()
+        return RemoteUser.objects.create(
+            sub=sub,
+            iss=iss,
+            local_user=user_model.objects.create()
+        )
+
+
 def verify_token(token):
     '''
     Verify that:
@@ -143,12 +171,13 @@ def verify_token(token):
         # if the user isn't found, we'll hit here
         # Not having a remote user user means that we don't have a local user,
         # so we'll create done of each
-        local_user = get_user_model().objects.create()
-        remote_user = RemoteUser.objects.create(
-            sub=claims[user_id_claim],
-            iss=claims['iss'],
-            local_user=local_user
-        )
+        remote_user = create_remote_user(sub=claims[user_id_claim], iss=claims['iss'])
+        # local_user = get_user_model().objects.create()
+        # remote_user = RemoteUser.objects.create(
+        #     sub=claims[user_id_claim],
+        #     iss=claims['iss'],
+        #     local_user=local_user
+        # )
 
     # If we get here, the user exists in the db, so we add their token to the cache
     if verify:
