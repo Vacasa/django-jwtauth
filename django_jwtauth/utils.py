@@ -143,7 +143,7 @@ def verify_token(token):
         # if the user isn't found, we'll hit here
         # Not having a remote user user means that we don't have a local user,
         # so we'll create done of each
-        local_user = get_user_model().objects.create()
+        local_user = get_user_model().objects.create(username=claims[user_id_claim])
         remote_user = RemoteUser.objects.create(
             sub=claims[user_id_claim],
             iss=claims['iss'],

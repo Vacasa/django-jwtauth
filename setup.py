@@ -59,7 +59,7 @@ setup(
     url='https://github.com/kelly-vacasa/django-jwtauth',
     packages=find_packages(exclude=['tests*']),
     include_package_data=True,
-    install_requires=['Django>=2.1.5',
+    install_requires=['Django>=2.1.7',
                       'cryptography>=2.4.2',
                       'PyJWT>=1.7.1',
                       'requests>=2.20.0'],
