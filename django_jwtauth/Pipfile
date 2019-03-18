@@ -17,7 +17,7 @@ pycparser = "==2.18"
 pytz = "==2018.4"
 requests = "==2.20.0"
 six = "==1.11.0"
-Django = "==2.1.5"
+Django = "==2.1.7"
 PyJWT = "==1.7.1"
 
 [requires]
