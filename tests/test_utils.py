@@ -80,3 +80,30 @@ class UtilsTestCase(TestCase):
         )
         with self.assertRaises(jwt.exceptions.MissingRequiredClaimError):
             utils.verify_token(token.decode()), get_user_model()
+
+    def test_local_user_user_name(self):
+
+        token = jwt.encode(
+            payload=self.claims,
+            key=utils.get_private_key(),
+            algorithm=settings.DJANGO_JWTAUTH['JWT_ALGORITHM']
+        )
+
+        test_user = utils.verify_token(token.decode())
+
+        self.assertEqual(test_user.username, 'test_user')
+
+        # second testuser
+        # verify that multiple users with different issuer & sub will work
+
+        self.claims['issuer'] = 'new_test_issuer'
+        self.claims['sub'] = 'test_user_two'
+        token_two = jwt.encode(
+            payload=self.claims,
+            key=utils.get_private_key(),
+            algorithm=settings.DJANGO_JWTAUTH['JWT_ALGORITHM']
+        )
+
+        test_user_two = utils.verify_token(token_two.decode())
+
+        self.assertEqual(test_user_two.username, 'test_user_two')
