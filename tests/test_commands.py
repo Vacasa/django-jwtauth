@@ -1,12 +1,8 @@
-import uuid
 from io import StringIO
-from os import path
-from shutil import rmtree
 
 from django.core.management import call_command
 from django.core.management.base import CommandError
 from django.test import TestCase
-
 from django.contrib.auth import get_user_model
 
 from django_jwtauth.utils import setup_keys, verify_token, get_private_key
@@ -55,13 +51,3 @@ class GenerateTokenTestCase(TestCase):
             token = call_command('generate_token', email=self.test_user.email, stdout=OUT)
         user = verify_token(token)
         self.assertEqual(user.id, self.test_user.id)
-
-    def test_command_raises_dne_error(self):
-        with self.settings(DEBUG=True):
-            with self.assertRaises(CommandError):
-                call_command('generate_token', user=uuid.uuid4(), stdout=OUT)
-
-    def test_command_raises_invalid_uuid_error(self):
-        with self.settings(DEBUG=True):
-            with self.assertRaises(CommandError):
-                call_command('generate_token', user='invalid_uuid', stdout=OUT)

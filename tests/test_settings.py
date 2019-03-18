@@ -2,7 +2,6 @@ import os
 
 SECRET_KEY = os.getenv('SECRET_KEY', '!INSECURE!')
 ROOT_URLCONF = 'django_jwtauth.urls'
-AUTH_USER_MODEL = 'tests.User'
 
 INSTALLED_APPS = [
     'django',

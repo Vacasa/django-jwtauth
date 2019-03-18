@@ -10,8 +10,7 @@ from django.test import TestCase, override_settings, RequestFactory
 from django.urls import reverse, clear_url_caches
 from django.core.exceptions import ValidationError, PermissionDenied
 from django.conf import settings
-
-from .models import User
+from django.contrib.auth.models import User
 
 from django_jwtauth.utils import generate_jwt_for_user
 from django_jwtauth.views import CallbackView, LogoutView
