@@ -106,3 +106,5 @@ ENV/
 .instrumental.cov
 django_jwtauth/keys/*
 .idea/*
+
+Dockerfile
