@@ -117,7 +117,7 @@ def verify_token(token):
     # In the case that the token isn't cached, we need to decode and verify the signature
     # In the case that it is in the cache, we need to decode to get the 'sub' and 'iss' claims to look up the user
     claims = jwt.decode(
-        token=token,
+        token,
         verify=verify,
         audience=settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],
         issuer=settings.DJANGO_JWTAUTH['JWT_ISSUER'],
@@ -143,7 +143,7 @@ def verify_token(token):
         # if the user isn't found, we'll hit here
         # Not having a remote user user means that we don't have a local user,
         # so we'll create done of each
-        local_user = get_user_model().objects.create()
+        local_user = get_user_model().objects.create(username=claims[user_id_claim])
         remote_user = RemoteUser.objects.create(
             sub=claims[user_id_claim],
             iss=claims['iss'],

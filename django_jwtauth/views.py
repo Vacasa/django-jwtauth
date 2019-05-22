@@ -125,7 +125,7 @@ class CallbackView(View):
 
         if 'id_token' in response:
             claims = jwt.decode(
-                token=response['id_token'],
+                jwt=response['id_token'],
                 verify=False,
                 audience=settings.DJANGO_JWTAUTH['JWT_AUDIENCE'],
                 issuer=settings.DJANGO_JWTAUTH['JWT_ISSUER']
